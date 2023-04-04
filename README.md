@@ -1,2 +1,2 @@
 # MACE
-Implementation of MACE with Matlab
+The MATLAB code of the paper "Multi-label learning with asymmetry label correlations and label-specific features".  
