@@ -1,2 +1,2 @@
-# MACE
-The MATLAB code of the paper "Multi-label learning with asymmetry label correlations and label-specific features".  
+# AMCDP
+The MATLAB code of the paper "Asymmetry multi-label correlations by density peak".  
