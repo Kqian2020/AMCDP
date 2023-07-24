@@ -1,2 +1,2 @@
 # AMCDP
-The MATLAB code of the paper "Asymmetry multi-label correlations by density peak".  
+The MATLAB code of the paper "Asymmetric multi-label correlations by density peak".  
