@@ -27,30 +27,37 @@ XTX = X'*X;
 W = eye(num_dim, num_class);
 W_1 = W;
 C = M;
-Lip1 = 2*norm(XTX)^2;
+C_1 = C;
+Lip1_w = 2*norm(XTX)^2;
+Lip1_c = (lambda2 + lambda3) + 2*norm((Y-N*Y)'*(Y-N*Y))^2;
 bk = 1; 
 bk_1 = 1; 
 iter = 1;
 obj_loss = zeros(1,maxIter);
 while iter <= maxIter
 %     L = diag(sum(C,1)) - C;
-    L = diag(sum(C,2)) - C;
+%     L = diag(sum(C,2)) - C;
     %% Lip
-    Lip = sqrt(Lip1 + 2*norm(lambda5*(L+L'))^2);
+    Lip_w = sqrt(Lip1_w + 2*norm(C*C')^2);
+    Lip_c = sqrt(Lip1_c + 2*norm(W'*W)^2);
+%     Lip = sqrt(Lip1 + 2*norm(lambda5*(L+L'))^2);
     %% update W
     W_k    = W + (bk_1 - 1)/bk * (W - W_1);
-    Gw_x_k = W_k - 1/Lip * gradientOfW(X,Y,W,C,lambda5);
+    Gw_x_k = W_k - 1/Lip_w * gradientOfW(X,Y,W,C,lambda5);
     W_1    = W;
-    W      = softthres(Gw_x_k,lambda1/Lip);
+    W      = softthres(Gw_x_k,lambda1/Lip_w);
     bk_1   = bk;
     bk     = (1 + sqrt(4*bk^2 + 1))/2;
     
     %% update C
-    C = ((lambda2+lambda3)*eye(num_class) + lambda4*(Y-N*Y)'*(Y-N*Y))\(lambda2*M);
+    C_k    = C + (bk_1 - 1)/bk * (C - C_1);
+    Gc_x_k = C_k - 1/Lip_c * gradientOfC(N,Y,W,C,M,lambda2,lambda3,lambda4,lambda5);
+    C_1    = C;
+    C      = Gc_x_k;
     
     %% stop conditions
     loss = 0.5*norm((X*W-Y),'fro')^2 + 0.5*lambda2*norm(C-M,'fro')^2 + 0.5*lambda4*norm(N*Y - N*Y*C,'fro')^2;
-    loss = loss + lambda5*trace(W*L*W') + 0.5*lambda3*norm(C,'fro')^2 + lambda1*norm(W,1);
+    loss = loss + lambda5*trace(W*C*C'*W') + 0.5*lambda3*norm(C,'fro')^2 + lambda1*norm(W,1);
     if loss < minLoss
         break
     end
@@ -89,8 +96,12 @@ Ws = max(W-lambda,0) - max(-W-lambda,0);
 end
 %% gradient W
 function gradient = gradientOfW(X,Y,W,C,lambda3)
-L = diag(sum(C,2)) - C;
+L = C*C';
 % L = diag(sum(C,1)) - C;
 gradient =X'*(X*W - Y);
-gradient = gradient + lambda3*W*(L + L');
+gradient = gradient + lambda3*W*L;
+end
+%% gradient C
+function gradient = gradientOfC(N,Y,W,C,M,lambda2,lambda3,lambda4,lambda5)
+gradient = lambda2*C + lambda3*(C-M) + lambda4*(Y-N*Y)'*(Y-N*Y) + lambda5*W'*W*C;
 end
